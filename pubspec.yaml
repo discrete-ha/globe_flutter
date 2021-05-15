@@ -1,0 +1,55 @@
+name: globe_flutter
+description: Globe application made with Flutter
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.9+1
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Add the dependency for the Firebase Core Flutter SDK
+  firebase_core: ^1.1.1
+  firebase_analytics: ^8.0.4
+  firebase_auth: ^1.1.4
+  cloud_firestore: ^2.1.0
+  firebase_messaging: ^9.1.4
+  google_mobile_ads: ^0.12.2
+
+  cupertino_icons: ^1.0.2
+
+  shared_preferences: ^2.0.5
+  http: ^0.13.3
+  flutter_card_swipper: ^0.4.0
+  flutter_scatter: ^0.1.0
+#  url_launcher: ^6.0.3
+  webview_flutter: ^2.0.4
+  location: ^4.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.9.0
+
+flutter_icons:
+  ios: true
+  android: true
+  image_path: "assets/logo.png"
+  image_path_ios: "assets/logowtbg.jpg"
+  adaptive_icon_background: "assets/background.jpg"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/config.json
+    - assets/logo.png
+    - assets/background.jpg
+    - assets/logowtbg.jpg
+    - assets/available.json
+
