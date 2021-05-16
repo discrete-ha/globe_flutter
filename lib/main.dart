@@ -1,21 +1,30 @@
 // @dart=2.9
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:globe_flutter/globe_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:globe_flutter/setting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'overlay_webview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
+  await Firebase.initializeApp();
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(MyApp());
+}
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Handling a background message: ${message.messageId}");
 }
 
 class MyApp extends StatefulWidget {
@@ -30,52 +39,31 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
-    // _firebaseMessaging.configure(
-    //   onMessage: (Map<String, dynamic> message) async {
-    //     print("onMessage: $message");
-    //   },
-    //   onLaunch: (Map<String, dynamic> message) async {
-    //     print("onLaunch: $message");
-    //   },
-    //   onResume: (Map<String, dynamic> message) async {
-    //     print("onResume: $message");
-    //   },
-    // );
-    // _firebaseMessaging.requestNotificationPermissions(
-    //     const IosNotificationSettings(sound: true, badge: true, alert: true));
-    // _firebaseMessaging.onIosSettingsRegistered
-    //     .listen((IosNotificationSettings settings) {
-    //   print("Settings registered: $settings");
-    // });
-    // _firebaseMessaging.getToken().then((String token) {
-    //   assert(token != null);
-    //   print("Push Messaging token: $token");
-    // });
+
   }
 
-  void fcmSubscribe(String lang) {
+  Future<void> fcmSubscribe(String lang) async {
     print(DateTime.now().timeZoneName);
+    print('language_' + lang);
     switch (lang) {
       case "es":
       case "ko":
       case "ja":
         {
-          print('language_' + lang);
-          // _firebaseMessaging.subscribeToTopic('language_'+lang);
+          await FirebaseMessaging.instance.subscribeToTopic('language_'+lang);
           break;
         }
       default:
         {
-          // _firebaseMessaging.subscribeToTopic('language_en');
+          await FirebaseMessaging.instance.subscribeToTopic('language_en');
           break;
         }
     }
   }
 
-  //
-  // void fcmUnSubscribe(String lang) {
-  //   _firebaseMessaging.unsubscribeFromTopic('language_'+lang);
-  // }
+  Future<void> fcmUnSubscribe(String lang) async {
+    await FirebaseMessaging.instance.subscribeToTopic('language_'+lang);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +104,8 @@ class _MyAppState extends State<MyApp> {
           ],
           localeResolutionCallback: (deviceLocale, supportedLocales) {
             print("localeResolutionCallback");
+            print("localeResolutionCallback countryCode:"+deviceLocale.countryCode);
+            print("localeResolutionCallback languageCode:"+deviceLocale.languageCode);
             if (deviceLocale != null) {
               for (Locale supportedLocale in supportedLocales) {
                 if (supportedLocale.languageCode == deviceLocale.languageCode ||

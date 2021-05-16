@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, rootBundle;
+import 'package:flutter/services.dart'
+    show SystemChrome, SystemUiOverlayStyle, rootBundle;
 import 'package:globe_flutter/banner_ad_widget.dart';
-import 'package:globe_flutter/overlay_loader.dart';
+import 'package:globe_flutter/custom_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:globe_flutter/setting.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'app_bar.dart';
@@ -20,13 +20,12 @@ class GlobeView extends StatefulWidget {
   _GlobeViewState createState() => _GlobeViewState();
 }
 
-class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
-
+class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   var _updateLimitSeconds = 180;
   var _updateWoeidLimitSeconds = 1800;
   var viewId = 0;
   bool _isFetching = true;
-  List<Map<String,dynamic>> issues = [];
+  List<Map<String, dynamic>> issues = [];
   String cityName = "";
   List<int> extraWoeid = [];
   int totalFetchCount = 0;
@@ -54,15 +53,15 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
     super.dispose();
   }
 
-  bool _checkCacheTime(){
-    if(_lastUpdateTime != null){
+  bool _checkCacheTime() {
+    if (_lastUpdateTime != null) {
       final date = DateTime.now();
       final difference = date.difference(_lastUpdateTime).inSeconds;
-      if(difference > _updateLimitSeconds){
+      if (difference > _updateLimitSeconds) {
         return true;
       }
       return false;
-    }else{
+    } else {
       return false;
     }
   }
@@ -73,10 +72,10 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     extraWoeid.clear();
     String? locationsString = prefs.getString(LS_FIELD.LOCATIONS);
-    print('locationsString:'+locationsString.toString());
-    if(locationsString != null){
+    print('locationsString:' + locationsString.toString());
+    if (locationsString != null) {
       var locations = json.decode(locationsString.toString());
-      locations.forEach((location){
+      locations.forEach((location) {
         extraWoeid.add(location);
       });
     }
@@ -93,15 +92,16 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var updateTime = prefs.get(LS_FIELD.LOCAL_WOEID_TIME);
     print(updateTime);
-    if(updateTime != null){
+    if (updateTime != null) {
       var now = DateTime.now();
-      final difference = now.difference( DateTime.parse(updateTime.toString()) ).inSeconds;
-      if(difference < _updateWoeidLimitSeconds){
+      final difference =
+          now.difference(DateTime.parse(updateTime.toString())).inSeconds;
+      if (difference < _updateWoeidLimitSeconds) {
         return prefs.getString(LS_FIELD.LOCAL_WOEID);
-      }else{
+      } else {
         return null;
       }
-    }else{
+    } else {
       return null;
     }
   }
@@ -111,13 +111,13 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var updateTime = prefs.getString(LS_FIELD.LOCAL_WOEID_TIME);
     var now = DateTime.now();
-    if(updateTime != null){
-      final difference = now.difference( DateTime.parse(updateTime) ).inSeconds;
-      if(difference >= _updateWoeidLimitSeconds){
+    if (updateTime != null) {
+      final difference = now.difference(DateTime.parse(updateTime)).inSeconds;
+      if (difference >= _updateWoeidLimitSeconds) {
         prefs.setString(LS_FIELD.LOCAL_WOEID, woeid);
         prefs.setString(LS_FIELD.LOCAL_WOEID_TIME, now.toString());
       }
-    }else{
+    } else {
       prefs.setString(LS_FIELD.LOCAL_WOEID, woeid);
       prefs.setString(LS_FIELD.LOCAL_WOEID_TIME, now.toString());
     }
@@ -133,9 +133,9 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
   @override
   Future didChangeAppLifecycleState(AppLifecycleState state) async {
     print("didChangeAppLifecycleState");
-    switch(state){
+    switch (state) {
       case AppLifecycleState.resumed:
-        if (_checkCacheTime()){
+        if (_checkCacheTime()) {
           loadData();
         }
         break;
@@ -156,48 +156,42 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     print("_MainViewState build()");
 
-    var body = !this._isFetching && this.issues.length > 0 ? locationCards : Center(child:
-      CircularProgressIndicator(
-        valueColor: new AlwaysStoppedAnimation<Color>(Colors.blue),
-        backgroundColor: Colors.white,
-      )
-    );
-;
+    var body = !this._isFetching && this.issues.length > 0
+        ? locationCards
+        : Center(
+            child: CircularProgressIndicator(
+            valueColor: new AlwaysStoppedAnimation<Color>(Colors.blue),
+            backgroundColor: Colors.white,
+          ));
+    ;
     return Scaffold(
-        appBar: getAppBar(context, this.widget, this.cityName, VIEW.INDEX, forceLoad),
-        body:Container(
-        color: Colors.grey,
-        child: Stack(
-            children: <Widget>[
-              new Padding(
-                  padding: EdgeInsets.only(bottom: 100),
-                  child:body
-              ),
-              new Positioned(
-                child: new Align(
-                    alignment: FractionalOffset.bottomCenter,
-                    child: new LogoView()
+        appBar: getAppBar(
+            context, this.widget, this.cityName, VIEW.INDEX, forceLoad),
+        body: Container(
+            color: Colors.grey,
+            child: Stack(
+              children: <Widget>[
+                new Padding(padding: EdgeInsets.only(bottom: 100), child: body),
+                new Positioned(
+                  child: new Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: new LogoView()),
                 ),
-              ),
-              new Positioned(
-                child: new Align(
-                    alignment: FractionalOffset.bottomCenter,
-                    child: BannerAdWidget()
-                ),
-              )
-            ],
-          )
-        )
-    );
-
+                new Positioned(
+                  child: new Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: BannerAdWidget()),
+                )
+              ],
+            )));
   }
 
-  void forceLoad(){
+  void forceLoad() {
     print("forceLoad");
     _loadDataBackground();
   }
 
-  _loadDataBackground(){
+  _loadDataBackground() {
     print("_loadDataBackground");
     setState(() {
       this._isFetching = true;
@@ -205,7 +199,7 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
     loadData();
   }
 
-  void onTitlePageChanged(String title){
+  void onTitlePageChanged(String title) {
     print("onTitlePageChanged:" + title);
     setState(() {
       this.cityName = title;
@@ -225,86 +219,90 @@ class _GlobeViewState extends State<GlobeView>  with WidgetsBindingObserver {
   }
 
   _parseIssue(String responseBody, bool isMain) {
-    print("_parseIssue");
-    try{
+    print("_parseIssue" + responseBody);
+    try {
       final parsed = json.decode(responseBody);
       _setWoeid(parsed["woeid"]);
-      if(isMain){
-        this.cityName =  parsed["location"] == "Worldwide" ? parsed["location"] : parsed["location"]  + ", " + parsed["country"];
+      if (isMain) {
+        this.cityName = parsed["location"] == "Worldwide"
+            ? parsed["location"]
+            : parsed["location"] + ", " + parsed["country"];
       }
 
       setState(() {
-        if(this.totalFetchCount == (this.issues.length +1)){
+        if (this.totalFetchCount == (this.issues.length + 1)) {
           this._isFetching = false;
-          this.locationCards = new LocationCards(this.issues, this.onTitlePageChanged);
-          // this.overlayLayout = new Stack(
-          //   children: <Widget>[
-          //     locationCards,
-          //     Container(
-          //       padding: EdgeInsets.all(0),
-          //       alignment: Alignment.bottomCenter,
-          //       decoration: BoxDecoration(
-          //         gradient: LinearGradient(
-          //           begin: Alignment.topCenter,
-          //           end: Alignment.bottomCenter,
-          //           colors: <Color>[
-          //             Colors.black45,
-          //             Colors.black45,
-          //             Colors.black45
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          //     Padding(
-          //       padding: EdgeInsets.all(50),
-          //       child: WebView(
-          //         initialUrl: 'https://www.google.com/search?q=%EC%A4%91%EA%B5%AD&tbs=qdr:d,sbd:1&tbm=nws',
-          //         javascriptMode: JavascriptMode.unrestricted,
-          //       ),
-          //     ),
-          //   ],
-          // );
+          this.locationCards =
+              new LocationCards(this.issues, this.onTitlePageChanged);
         }
         this.issues.add(parsed);
       });
-    }catch(e){
+    } catch (e) {
       print(e.toString());
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomDialog(
+              title: "ERROR",
+              descriptions: "Server temporarily down for maintenance",
+              text: "OK",
+            );
+          });
     }
   }
 
-  Future<Map<String,dynamic>?> _fetchIssue(http.Client client) async {
+  Future<Map<String, dynamic>?> _fetchIssue(http.Client client) async {
     print("_fetchIssue");
-    this.issues.clear();
-    _saveUpdateTime();
-    totalFetchCount = 1 +  extraWoeid.length;
+    try {
+      this.issues.clear();
+      _saveUpdateTime();
+      totalFetchCount = 1 + extraWoeid.length;
 
-    final CONFIG = json.decode(jsonStringConfig);
-    var API_APPID = CONFIG['API_APPID'];
-    var response;
-    var woeid = await _getWoeid();
-    print("woeid:"+woeid.toString());
-    if(woeid == null){
-      LocationData? userLocation = (await _getLocation());
-      print("userLocation:"+userLocation.toString());
-      if(userLocation == null){
-        woeid = "1" as Future<String>;
-        response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
-      }else{
-        var lat = userLocation.latitude.toString();
-        var lon = userLocation.longitude.toString();
-        print("lat:"+lat.toString());
-        print("lon:"+lon.toString());
-        response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$lat/$lon'));
+      final CONFIG = json.decode(jsonStringConfig);
+      var API_APPID = CONFIG['API_APPID'];
+      var response;
+      var woeid = await _getWoeid();
+      print("woeid:" + woeid.toString());
+      if (woeid == null) {
+        LocationData? userLocation = (await _getLocation());
+        print("userLocation:" + userLocation.toString());
+        if (userLocation == null) {
+          woeid = "1" as Future<String>;
+          response = await client
+              .get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
+        } else {
+          var lat = userLocation.latitude.toString();
+          var lon = userLocation.longitude.toString();
+          print("lat:" + lat.toString());
+          print("lon:" + lon.toString());
+          response = await client.get(
+              Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$lat/$lon'));
+        }
+      } else {
+        response = await client
+            .get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
       }
-    }else{
-      response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
-    }
-    _parseIssue( response.body , true);
+      _parseIssue(response.body, true);
 
-    extraWoeid.forEach((woeid) async {
-      print("request ${woeid}" );
-      response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
-      _parseIssue( response.body , false);
-    });
+      extraWoeid.forEach((woeid) async {
+        print("request ${woeid}");
+        response = await client
+            .get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
+        _parseIssue(response.body, false);
+      });
+    } catch (error) {
+      print("_fetchIssue() error" + error.toString());
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomDialog(
+              title: "ERROR",
+              descriptions: "Server temporarily unavailable",
+              text: "Reload",
+            );
+          }).then((val) {
+            _loadDataBackground();
+      });
+    }
   }
 }
