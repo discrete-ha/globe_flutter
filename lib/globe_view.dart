@@ -5,10 +5,11 @@ import 'package:flutter/services.dart'
     show SystemChrome, SystemUiOverlayStyle, rootBundle;
 import 'package:globe_flutter/banner_ad_widget.dart';
 import 'package:globe_flutter/custom_dialog.dart';
+import 'package:globe_flutter/loading_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:globe_flutter/setting.dart';
+import 'package:globe_flutter/const.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'app_bar.dart';
@@ -156,14 +157,8 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     print("_MainViewState build()");
 
-    var body = !this._isFetching && this.issues.length > 0
-        ? locationCards
-        : Center(
-            child: CircularProgressIndicator(
-            valueColor: new AlwaysStoppedAnimation<Color>(Colors.blue),
-            backgroundColor: Colors.white,
-          ));
-    ;
+    var body = !this._isFetching && this.issues.length > 0 ? locationCards : LoadingIndicator();
+
     return Scaffold(
         appBar: getAppBar(
             context, this.widget, this.cityName, VIEW.INDEX, forceLoad),
@@ -219,7 +214,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   }
 
   _parseIssue(String responseBody, bool isMain) {
-    print("_parseIssue" + responseBody);
+    // print("_parseIssue" + responseBody);
     try {
       final parsed = json.decode(responseBody);
       _setWoeid(parsed["woeid"]);
@@ -243,9 +238,9 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
           context: context,
           builder: (BuildContext context) {
             return CustomDialog(
-              title: "ERROR",
-              descriptions: "Server temporarily down for maintenance",
-              text: "OK",
+              title: DIALOG_TEXT.ERROR,
+              descriptions: ERROR_MESSEGE.SERVER_NOT_RESPONSE,
+              text: DIALOG_TEXT.RELOAD,
             );
           });
     }
@@ -296,9 +291,9 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
           context: context,
           builder: (BuildContext context) {
             return CustomDialog(
-              title: "ERROR",
-              descriptions: "Server temporarily unavailable",
-              text: "Reload",
+              title: DIALOG_TEXT.ERROR,
+              descriptions: ERROR_MESSEGE.SERVER_NOT_RESPONSE,
+              text: DIALOG_TEXT.RELOAD,
             );
           }).then((val) {
             _loadDataBackground();

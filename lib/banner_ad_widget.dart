@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:globe_flutter/setting.dart';
+import 'package:globe_flutter/const.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class BannerAdWidget extends StatefulWidget {
@@ -32,6 +32,7 @@ class BannerAdState extends State<BannerAdWidget> {
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
           ad.dispose();
+          print("BannerAd ad.adUnitId:"+ad.adUnitId);
           print('$BannerAd failedToLoad: $error');
           bannerCompleter.completeError(error);
         },

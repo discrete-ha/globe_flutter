@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:screenshot_share_image/screenshot_share_image.dart';
 
 import 'add_city_list.dart';
-import 'setting.dart';
+import 'const.dart';
 
 import 'package:flutter/services.dart';
 

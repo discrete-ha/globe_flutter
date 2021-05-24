@@ -3,7 +3,7 @@ description: Globe application made with Flutter
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.9+1
+version: 1.1.1+15
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -15,11 +15,13 @@ dependencies:
     sdk: flutter
 
   # Add the dependency for the Firebase Core Flutter SDK
-  firebase_core: ^1.1.1
-  firebase_analytics: ^8.0.4
-  firebase_auth: ^1.1.4
-  cloud_firestore: ^2.1.0
-  firebase_messaging: ^9.1.4
+  firebase_core: ^1.2.0
+  firebase_core_web: ^1.1.0
+  firebase_analytics: ^8.1.0
+  firebase_auth: ^1.2.0
+  cloud_firestore: ^2.2.0
+  firebase_messaging: ^10.0.0
+  firebase_messaging_web: ^2.0.0
   google_mobile_ads: ^0.12.2
 
   cupertino_icons: ^1.0.2
@@ -31,6 +33,7 @@ dependencies:
 #  url_launcher: ^6.0.3
   webview_flutter: ^2.0.4
   location: ^4.1.1
+  lottie: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -52,4 +55,5 @@ flutter:
     - assets/background.jpg
     - assets/logowtbg.jpg
     - assets/available.json
+    - assets/globe_lottie.json
 

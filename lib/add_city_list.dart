@@ -4,7 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, rootBundle;
-import 'package:globe_flutter/setting.dart';
+import 'package:globe_flutter/available_cities.dart';
+import 'package:globe_flutter/const.dart';
 
 import 'app_bar.dart';
 import 'city.dart';
@@ -20,10 +21,6 @@ class AddCityList extends StatefulWidget {
 
   @override
   _AddCityListState createState() => new _AddCityListState();
-}
-
-Future<String> _loadAvailable() async {
-  return await rootBundle.loadString('assets/available.json');
 }
 
 class _AddCityListState extends State<AddCityList> {
@@ -49,12 +46,11 @@ class _AddCityListState extends State<AddCityList> {
 
   void _updateAvaliableCities() async {
 
-    final rawCities = json.decode(await _loadAvailable());
     List<City> cities = [];
     _savedCities.clear();
     _availableCities.clear();
 
-    rawCities.forEach((city){
+    AvailableCities.instance.cities.forEach((city){
       var isWoeidExist = false;
       extraWoeid.forEach((woeid){
         if(woeid == city['woeid']){
