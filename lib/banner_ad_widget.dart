@@ -21,14 +21,11 @@ class BannerAdState extends State<BannerAdWidget> {
   @override
   void initState() {
     super.initState();
-    MobileAds.instance.initialize().then((InitializationStatus status) {
-      print('Initialization done: ${status.adapterStatuses}');
-    });
     _bannerAd = BannerAd(
       adUnitId: SETTING.admobUnitId,
       request: AdRequest(),
       size: widget.size,
-      listener: BannerAdListener(
+      listener: AdListener(
         onAdLoaded: (Ad ad) {
           print('$BannerAd loaded.');
           bannerCompleter.complete(ad as BannerAd);
@@ -41,6 +38,7 @@ class BannerAdState extends State<BannerAdWidget> {
         },
         onAdOpened: (Ad ad) => print('$BannerAd onAdOpened.'),
         onAdClosed: (Ad ad) => print('$BannerAd onAdClosed.'),
+        onApplicationExit: (Ad ad) => print('$BannerAd onApplicationExit.'),
       ),
     );
     Future<void>.delayed(Duration(seconds: 1), () => _bannerAd.load());

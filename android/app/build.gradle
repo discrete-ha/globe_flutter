@@ -90,14 +90,7 @@ android {
             signingConfig signingConfigs.release
             debuggable = false
 
-//
 //            signingConfig signingConfigs.debug
-//            minifyEnabled false
-//            shrinkResources false
-        }
-
-        debug {
-            signingConfig signingConfigs.debug
         }
     }
 }

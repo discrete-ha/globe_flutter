@@ -9,12 +9,12 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.SplashScreen
-import io.flutter.embedding.engine.FlutterEngine
 import java.util.*
 
 class MainActivity: FlutterActivity() {
 
 //    override fun provideSplashScreen(): SplashScreen? = SplashView()
+
 
     override fun getDartEntrypointFunctionName(): String {
         FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
