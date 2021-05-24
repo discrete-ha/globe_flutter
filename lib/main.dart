@@ -1,5 +1,5 @@
 // @dart=2.9
-// import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:globe_flutter/available_cities.dart';
@@ -20,12 +20,13 @@ void main() async {
   await Firebase.initializeApp();
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   await AvailableCities.instance.loadFile();
   runApp(MyApp());
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
   print("Handling a background message: ${message.messageId}");
 }
 

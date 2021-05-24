@@ -10,6 +10,7 @@ class IssueList extends StatelessWidget {
   IssueList({required this.issue, required this.ratio, key}) : super(key: key);
 
   List<Issue> generateIssueWords(rawIssues){
+    print("generateIssueWords()");
     List<Issue> resIssueWords = [];
     rawIssues["topics"].forEach((issue){
       int defalutPoint = issue["point"].toInt();

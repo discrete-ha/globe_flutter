@@ -10,7 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:globe_flutter/const.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'app_bar.dart';
 import 'location_cards.dart';
@@ -44,9 +45,6 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
       jsonStringConfig = await _loadConfig();
       loadData();
     })();
-    MobileAds.instance.initialize().then((InitializationStatus status) {
-      print('Initialization done: ${status.adapterStatuses}');
-    });
   }
 
   @override
@@ -175,7 +173,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
                 new Positioned(
                   child: new Align(
                       alignment: FractionalOffset.bottomCenter,
-                      child: BannerAdWidget()),
+                      child: kIsWeb ? Container() : BannerAdWidget()),
                 )
               ],
             )));
