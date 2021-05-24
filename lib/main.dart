@@ -2,13 +2,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:globe_flutter/available_cities.dart';
 import 'package:globe_flutter/globe_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'overlay_webview.dart';
 
@@ -19,6 +21,7 @@ void main() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  await AvailableCities.instance.loadFile();
   runApp(MyApp());
 }
 
@@ -38,27 +41,37 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+    if(kIsWeb){
+
+    }else{
+      bool isAndroid = Theme.of(context).platform == TargetPlatform.android;
+      if(isAndroid) WebView.platform = SurfaceAndroidWebView();
+      // if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+    }
 
   }
 
   Future<void> fcmSubscribe(String lang) async {
     print(DateTime.now().timeZoneName);
     print('language_' + lang);
-    switch (lang) {
-      case "es":
-      case "ko":
-      case "ja":
-        {
-          await FirebaseMessaging.instance.subscribeToTopic('language_'+lang);
-          break;
-        }
-      default:
-        {
-          await FirebaseMessaging.instance.subscribeToTopic('language_en');
-          break;
-        }
+
+    if(!kIsWeb){
+      switch (lang) {
+        case "es":
+        case "ko":
+        case "ja":
+          {
+            await FirebaseMessaging.instance.subscribeToTopic('language_'+lang);
+            break;
+          }
+        default:
+          {
+            await FirebaseMessaging.instance.subscribeToTopic('language_en');
+            break;
+          }
+      }
     }
+
   }
 
   Future<void> fcmUnSubscribe(String lang) async {

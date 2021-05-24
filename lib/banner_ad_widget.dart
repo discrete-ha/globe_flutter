@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:globe_flutter/setting.dart';
+import 'package:globe_flutter/const.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class BannerAdWidget extends StatefulWidget {
@@ -21,23 +21,26 @@ class BannerAdState extends State<BannerAdWidget> {
   @override
   void initState() {
     super.initState();
+    MobileAds.instance.initialize().then((InitializationStatus status) {
+      print('Initialization done: ${status.adapterStatuses}');
+    });
     _bannerAd = BannerAd(
       adUnitId: SETTING.admobUnitId,
       request: AdRequest(),
       size: widget.size,
-      listener: AdListener(
+      listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
           print('$BannerAd loaded.');
           bannerCompleter.complete(ad as BannerAd);
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
           ad.dispose();
+          print("BannerAd ad.adUnitId:"+ad.adUnitId);
           print('$BannerAd failedToLoad: $error');
           bannerCompleter.completeError(error);
         },
         onAdOpened: (Ad ad) => print('$BannerAd onAdOpened.'),
         onAdClosed: (Ad ad) => print('$BannerAd onAdClosed.'),
-        onApplicationExit: (Ad ad) => print('$BannerAd onApplicationExit.'),
       ),
     );
     Future<void>.delayed(Duration(seconds: 1), () => _bannerAd.load());

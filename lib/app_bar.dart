@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'package:screenshot_share_image/screenshot_share_image.dart';
+import 'package:screenshot_share_image/screenshot_share_image.dart';
 
 import 'add_city_list.dart';
-import 'setting.dart';
+import 'const.dart';
 
 import 'package:flutter/services.dart';
 
@@ -13,17 +13,17 @@ AppBar getAppBar(BuildContext context, Widget currentWidget, String title, int V
   switch(VIEW_ID){
     case VIEW.INDEX:
       actions = <Widget>[
-        // new IconButton(
-        //   color: Colors.grey[700],
-        //   icon:
-        //   new Icon(
-        //       Icons.share,size: 25.0
-        //   ),
-        //   tooltip: 'Add Location',
-        //   onPressed: () {
-        //     ScreenshotShareImage.takeScreenshotShareImage();
-        //   },
-        // ),
+        new IconButton(
+          color: Colors.grey[700],
+          icon:
+          new Icon(
+              Icons.share,size: 25.0
+          ),
+          tooltip: 'Add Location',
+          onPressed: () {
+            ScreenshotShareImage.takeScreenshotShareImage();
+          },
+        ),
         new IconButton(
           color: Colors.grey[700],
           icon:
