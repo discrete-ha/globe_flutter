@@ -1,0 +1,18 @@
+{
+  "appTitle": "グローブ [GLOBE]",
+  "subTitle": "Realtime news in a nutshell",
+  "localNotificationBody": "今ここで何が起きてるのか見てみよう！",
+  "notification": "通知設定",
+  "reminder": "リマインダー",
+  "history": "履歴",
+  "contact": "お問い合わせ",
+  "on": "オン",
+  "off": "オフ",
+  "from": "From",
+  "enter_email": "あなたのメールアドレスを入力してください。",
+  "title": "タイトル",
+  "enter_title": "タイトルを入力してください。",
+  "enter_message": "メッセージを入力してください。",
+  "deleted": "を削除しました。",
+  "to_delete": "削除します。"
+}

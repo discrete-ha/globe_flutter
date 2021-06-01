@@ -15,7 +15,6 @@ class MainActivity: FlutterActivity() {
 
 //    override fun provideSplashScreen(): SplashScreen? = SplashView()
 
-
     override fun getDartEntrypointFunctionName(): String {
         FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
             if (!task.isSuccessful) {
