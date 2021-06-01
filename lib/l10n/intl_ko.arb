@@ -1,0 +1,18 @@
+{
+  "appTitle": "GLOBE",
+  "subTitle": "Realtime news in a nutshell",
+  "localNotificationBody": "지금 여기서 무슨일이 일어나고 있을까?",
+  "notification": "알림설정",
+  "reminder": "리마인더",
+  "history": "이력",
+  "contact": "문의하기",
+  "on": "켜짐",
+  "off": "꺼짐",
+  "from": "From",
+  "enter_email": "보내시는 E-mail을 입력해주십시오.",
+  "title": "제목",
+  "enter_title": "제목을 입력해 주십시오.",
+  "enter_message": "내용을 입력해 주십시오.",
+  "deleted": "을(를) 삭제하였습니다.",
+  "to_delete": "삭제합니다."
+}

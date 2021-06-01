@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'
-    show SystemChrome, SystemUiOverlayStyle, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:globe_flutter/add_city_drawer.dart';
+import 'package:globe_flutter/app_drawer.dart';
 import 'package:globe_flutter/banner_ad_widget.dart';
 import 'package:globe_flutter/custom_dialog.dart';
+import 'package:globe_flutter/generated/l10n.dart';
 import 'package:globe_flutter/loading_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
@@ -13,8 +15,10 @@ import 'package:globe_flutter/const.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:timezone/timezone.dart' as tz;
+
 import 'app_bar.dart';
-import 'location_cards.dart';
+import 'swiper_cards.dart';
 import 'logo_view.dart';
 
 class GlobeView extends StatefulWidget {
@@ -28,13 +32,16 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   var viewId = 0;
   bool _isFetching = true;
   List<Map<String, dynamic>> issues = [];
-  String cityName = "";
+  String appbarTitle = "";
+  String? appbarSubTitle;
+  String currentCityName = "";
+  String? currentCountryName;
   List<int> extraWoeid = [];
   int totalFetchCount = 0;
 
   late DateTime _lastUpdateTime;
   late String jsonStringConfig;
-  late LocationCards locationCards;
+  late SwiperCards swiperCards;
   late Stack overlayLayout;
 
   @override
@@ -86,8 +93,8 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     prefs.setString(LS_FIELD.LAST_UPDATE_TIME, DateTime.now().toString());
   }
 
-  _getWoeid() async {
-    print("_getWoeid()");
+  _getLocalWoeid() async {
+    print("_getLocalWoeid()");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var updateTime = prefs.get(LS_FIELD.LOCAL_WOEID_TIME);
     print(updateTime);
@@ -105,7 +112,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     }
   }
 
-  _setWoeid(woeid) async {
+  _setLocalWoeid(woeid) async {
     print("_setWoeid:" + woeid);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var updateTime = prefs.getString(LS_FIELD.LOCAL_WOEID_TIME);
@@ -126,7 +133,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     print("loadData()");
     // this._isFetching = true;
     await _getSavedLocations();
-    _fetchIssue(http.Client());
+    _fetchIssue();
   }
 
   @override
@@ -154,29 +161,38 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     print("_MainViewState build()");
-
-    var body = !this._isFetching && this.issues.length > 0 ? locationCards : LoadingIndicator();
+    var body = !this._isFetching && this.issues.length > 0
+        ? swiperCards
+        : LoadingIndicator();
 
     return Scaffold(
-        appBar: getAppBar(
-            context, this.widget, this.cityName, VIEW.INDEX, forceLoad),
-        body: Container(
-            color: Colors.grey,
-            child: Stack(
-              children: <Widget>[
-                new Padding(padding: EdgeInsets.only(bottom: 100), child: body),
-                new Positioned(
-                  child: new Align(
-                      alignment: FractionalOffset.bottomCenter,
-                      child: new LogoView()),
-                ),
-                new Positioned(
-                  child: new Align(
-                      alignment: FractionalOffset.bottomCenter,
-                      child: kIsWeb ? Container() : BannerAdWidget()),
-                )
-              ],
-            )));
+        resizeToAvoidBottomInset: false,
+        drawer: AppDrawer(),
+        endDrawer: AddCityDrawer(callback: forceLoad),
+        appBar: GlobeAppBar(context, this.appbarTitle, this.appbarSubTitle , VIEW.INDEX, forceLoad ),
+        body: Builder(builder: (BuildContext context) {
+          return Center(
+            child: Container(
+                color: Colors.blueGrey.shade300,
+                // color: Colors.grey.shade500,
+                child: Stack(
+                  children: <Widget>[
+                    new Padding(
+                        padding: EdgeInsets.only(bottom: 100), child: body),
+                    new Positioned(
+                      child: new Align(
+                          alignment: FractionalOffset.bottomCenter,
+                          child: new LogoView()),
+                    ),
+                    new Positioned(
+                      child: new Align(
+                          alignment: FractionalOffset.bottomCenter,
+                          child: kIsWeb ? Container() : BannerAdWidget()),
+                    )
+                  ],
+                )),
+          );
+        }));
   }
 
   void forceLoad() {
@@ -192,20 +208,30 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     loadData();
   }
 
-  void onTitlePageChanged(String title) {
+  void onTitlePageChanged(String title, String? subTitle) {
     print("onTitlePageChanged:" + title);
     setState(() {
-      this.cityName = title;
+      if(this.currentCityName == title && this.currentCountryName == subTitle){
+        this.appbarTitle = "Your location";
+        if(subTitle == null){
+          this.appbarSubTitle = title;
+        }else{
+          this.appbarSubTitle = title + "," + subTitle;
+        }
+      }else{
+        this.appbarTitle = title;
+        this.appbarSubTitle = subTitle;
+      }
+      //
+      // this.cityName = "Your location";
+      // this.countryName = title + "," + subTitle;
     });
   }
 
   Future<LocationData?> _getLocation() async {
     var location = new Location();
-
     try {
-      LocationData userLocation;
-      userLocation = await location.getLocation();
-      return userLocation;
+      return await location.getLocation();
     } catch (e) {
       return null;
     }
@@ -215,18 +241,24 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     // print("_parseIssue" + responseBody);
     try {
       final parsed = json.decode(responseBody);
-      _setWoeid(parsed["woeid"]);
       if (isMain) {
-        this.cityName = parsed["location"] == "Worldwide"
-            ? parsed["location"]
-            : parsed["location"] + ", " + parsed["country"];
+        // this.cityName = parsed["location"] ;
+        // this.countryName = parsed["country"];
+        this.appbarTitle = "Your location";
+        if(parsed["country"] == null ){
+          this.appbarSubTitle = parsed["location"];
+        }else{
+          this.appbarSubTitle = parsed["location"] + "," + parsed["country"];
+        }
+
+        this.currentCityName = parsed["location"];
+        this.currentCountryName = parsed["country"];
       }
 
       setState(() {
         if (this.totalFetchCount == (this.issues.length + 1)) {
           this._isFetching = false;
-          this.locationCards =
-              new LocationCards(this.issues, this.onTitlePageChanged);
+          this.swiperCards = new SwiperCards(this.issues, this.onTitlePageChanged);
         }
         this.issues.add(parsed);
       });
@@ -244,9 +276,10 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     }
   }
 
-  Future<Map<String, dynamic>?> _fetchIssue(http.Client client) async {
+  Future<Map<String, dynamic>?> _fetchIssue() async {
     print("_fetchIssue");
     try {
+      var client = http.Client();
       this.issues.clear();
       _saveUpdateTime();
       totalFetchCount = 1 + extraWoeid.length;
@@ -254,27 +287,41 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
       final CONFIG = json.decode(jsonStringConfig);
       var API_APPID = CONFIG['API_APPID'];
       var response;
-      var woeid = await _getWoeid();
-      print("woeid:" + woeid.toString());
+      var woeid = await _getLocalWoeid();
+      print("saved woeid:" + woeid.toString());
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      var updateTime = prefs.getString(LS_FIELD.LOCAL_WOEID_TIME);
+      var now = DateTime.now();
+      if (updateTime != null) {
+        final difference = now.difference(DateTime.parse(updateTime)).inSeconds;
+        if (difference >= _updateWoeidLimitSeconds) {
+          woeid = null;
+        }
+      } else {
+        woeid = null;
+      }
+
       if (woeid == null) {
         LocationData? userLocation = (await _getLocation());
         print("userLocation:" + userLocation.toString());
         if (userLocation == null) {
           woeid = "1" as Future<String>;
-          response = await client
-              .get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
+          response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
         } else {
+          //current location
           var lat = userLocation.latitude.toString();
           var lon = userLocation.longitude.toString();
           print("lat:" + lat.toString());
           print("lon:" + lon.toString());
-          response = await client.get(
-              Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$lat/$lon'));
+          response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$lat/$lon'));
+          var parsedResponse = json.decode(response.body);
+          _setLocalWoeid(parsedResponse["woeid"]);
         }
       } else {
-        response = await client
-            .get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
+        response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
       }
+
       _parseIssue(response.body, true);
 
       extraWoeid.forEach((woeid) async {
@@ -284,7 +331,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
         _parseIssue(response.body, false);
       });
     } catch (error) {
-      print("_fetchIssue() error" + error.toString());
+      print("_fetchIssue() error:" + error.toString());
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -294,8 +341,9 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
               text: DIALOG_TEXT.RELOAD,
             );
           }).then((val) {
-            _loadDataBackground();
+        _loadDataBackground();
       });
     }
   }
+
 }

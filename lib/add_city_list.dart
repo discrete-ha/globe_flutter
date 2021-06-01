@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, rootBundle;
+import 'package:globe_flutter/app_drawer.dart';
 import 'package:globe_flutter/available_cities.dart';
 import 'package:globe_flutter/const.dart';
 
@@ -14,10 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 typedef void OnDismiss();
 
 class AddCityList extends StatefulWidget {
-
-  OnDismiss onDismiss;
-
-  AddCityList({required this.onDismiss, key}) : super(key: key);
 
   @override
   _AddCityListState createState() => new _AddCityListState();
@@ -31,12 +29,10 @@ class _AddCityListState extends State<AddCityList> {
   var items = <City>[];
   List<int> extraWoeid = [];
   List<int> prevExtraWoeid = [];
-  late OnDismiss? callbackFuntion;
 
   @override
   void initState() {
     super.initState();
-    callbackFuntion = null;
     (() async {
       await _getSavedLocations();
       _updateAvaliableCities();
@@ -134,7 +130,6 @@ class _AddCityListState extends State<AddCityList> {
     var isWoeidExist = false;
     if(extraWoeid.length >= 5){
       print(extraWoeid);
-//      Navigator.of(context).pop();
       return;
     }
 
@@ -151,11 +146,10 @@ class _AddCityListState extends State<AddCityList> {
     }
     _editingController.clear();
     _updateAvaliableCities();
-//    Navigator.of(context).pop();
+    logAddCity(item.name);
   }
 
   _buildLocationCard(int index){
-
     var isSaved = extraWoeid.contains(items[index].woeid);
     return InkWell(
       child: Card(
@@ -169,20 +163,28 @@ class _AddCityListState extends State<AddCityList> {
               Text(
                 items[index].name,
                 style: TextStyle(
-                  fontSize: 16.0,
+                  fontSize: 15.0,
                   color: isSaved ? Colors.white : Colors.black,
                 ),
               ),
               SizedBox(
                 width: 5.0,
               ),
-              Text(
+          Flexible(
+            fit: FlexFit.loose,
+            child:Container(
+              alignment: Alignment.bottomLeft,
+              height: 18,
+              padding: EdgeInsets.all(0),
+              child: Text(
                 items[index].country,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 14.0,
+                  fontSize: 12.0,
                   color:  isSaved ? Colors.grey[400] : Colors.grey,
                 ),
               ),
+            ),)
             ],
           ),
         ),
@@ -192,16 +194,6 @@ class _AddCityListState extends State<AddCityList> {
           _removeLocation(items[index]);
         }else{
           _addLocation(items[index]);
-        }
-
-        var tempExtraWoeid = [];
-        tempExtraWoeid.addAll(extraWoeid);
-        tempExtraWoeid.sort((a, b) => a - b);
-        prevExtraWoeid.sort((a, b) => a - b);
-        if( listEquals(tempExtraWoeid, prevExtraWoeid) ){
-
-        }else{
-          callbackFuntion = widget.onDismiss;
         }
       },
     );
@@ -215,22 +207,12 @@ class _AddCityListState extends State<AddCityList> {
 
     var title =  extraWoeid.length == 0 ? "" : extraWoeid.length.toString() + "/5";
 
-    return WillPopScope(
-      onWillPop: () async {
-        bool shouldPop = true;
-        callbackFuntion!();
-        Navigator.of(context).pop();
-        return shouldPop;
-      },
-      child: Container(
-      decoration: BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: [Colors.pink.shade300, Colors.blue])),
+    return Container(
+      color: Colors.white,
       child: new SafeArea(
         child: Scaffold(
-            appBar: getAppBar(context, this.widget, title, VIEW.ADD_CITY, callbackFuntion),
+            // drawer: AppDrawer(),
+            appBar: GlobeAppBar(context, title, null, VIEW.ADD_CITY, (){}),
             body: Container(
               child: Column(
                 children: <Widget>[
@@ -248,9 +230,7 @@ class _AddCityListState extends State<AddCityList> {
                               hintText: "City",
                               contentPadding: new EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
                               prefixIcon: Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(3.0))
-                              )
+                              border: UnderlineInputBorder()
                           ),
                         ),
                       )
@@ -269,7 +249,10 @@ class _AddCityListState extends State<AddCityList> {
             )
           )
         )
-      )
     );
   }
+}
+
+Future logAddCity(String city) async {
+  await FirebaseAnalytics().logEvent(name: 'add_city', parameters: {'city': city});
 }

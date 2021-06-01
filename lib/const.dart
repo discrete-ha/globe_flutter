@@ -15,6 +15,8 @@ abstract class SETTING {
 class VIEW{
   static const int INDEX = 1;
   static const int ADD_CITY = 2;
+  static const int SEND_MAIL = 3;
+  static const int HISTORY = 4;
 }
 
 class LS_FIELD{
@@ -22,6 +24,11 @@ class LS_FIELD{
   static String LOCAL_WOEID = "LOCAL_WOEID";
   static String LOCAL_WOEID_TIME = "LOCAL_WOEID_TIME";
   static String LOCATIONS = "local_storage_location";
+  static String NOTIFICATION_SETTING = "notification_setting";
+  static String NOTIFICATION_TIME = "notification_time";
+  static String HISTROY_WORDS = "history_words";
+  static String INITIALIZED = "initialized";
+  static String NOTIFICATION_TEXT = "notification_text";
 }
 
 class ERROR_MESSEGE{

@@ -28,7 +28,7 @@ class BannerAdState extends State<BannerAdWidget> {
       adUnitId: SETTING.admobUnitId,
       request: AdRequest(),
       size: widget.size,
-      listener: AdListener(
+      listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
           print('$BannerAd loaded.');
           bannerCompleter.complete(ad as BannerAd);

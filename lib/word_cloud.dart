@@ -1,17 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_scatter/flutter_scatter.dart';
+import 'package:globe_flutter/const.dart';
 import 'package:globe_flutter/overlay_loader.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert' show utf8;
 import 'issue.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class WordColud extends StatelessWidget {
   final List<Issue> words;
   List<Widget> widgets = <Widget>[];
-  String countryCode;
   final double ratio;
+  String countryCode, cityName, countryName;
 
-  WordColud(this.words, this.countryCode, this.ratio);
+  WordColud(this.words, this.countryCode, this.ratio, this.cityName, this.countryName);
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +36,7 @@ class WordColud extends StatelessWidget {
           (colorBottom[0] - ( diffR * ratio ) ).toInt() ,
           (colorBottom[1] - ( diffG * ratio ) ).toInt(),
           (colorBottom[2] - ( diffB * ratio ) ).toInt(), 1 );
-
-      widgets.add( CloudItem(words[i].word, color, fontSize.toDouble(), this.countryCode ));
+      widgets.add( CloudItem(words[i].word, color, fontSize.toDouble(), this.countryCode, this.cityName, this.countryName ));
     }
 
     return Scatter(
@@ -46,8 +48,8 @@ class WordColud extends StatelessWidget {
 }
 
 class CloudItem extends StatelessWidget {
-  CloudItem(this.word, this.color, this.fontSize, this.countryCode);
-  String word, countryCode;
+  CloudItem(this.word, this.color, this.fontSize, this.countryCode, this.cityName, this.countryName);
+  String word, countryCode, cityName, countryName;
   final Color color;
   final double fontSize;
 
@@ -65,8 +67,6 @@ class CloudItem extends StatelessWidget {
     }
 
     return TextButton(
-        // padding: EdgeInsets.symmetric(vertical: 20, horizontal: 5.0),
-
         style: TextButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 20, horizontal: 5.0),
             ),
@@ -75,20 +75,46 @@ class CloudItem extends StatelessWidget {
             style: style,
             textAlign: TextAlign.center
         ),
-        onPressed: () => openBrowser(word, countryCode),
+        onPressed: () {
+          openBrowser(word, countryCode);
+          addHistory(word, cityName, countryName);
+        }
     );
   }
-}
 
-openBrowser(String message, String countryCode) async {
-  print("openBrowser");
-  var searchUrl = Uri.encodeFull("https://www.google.com/search?q=${message}&tbm=nws&source=lnt&tbs=sbd:1");
-  if(countryCode == "KR"){
-    searchUrl = Uri.encodeFull("https://search.naver.com/search.naver?sm=top_hty&fbm=1&ie=utf8&query=${message}");
+  Future<void> addHistory(String word, String cityName, String countryName) async {
+    print("addHistory()");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> historyWords = prefs.getStringList(LS_FIELD.HISTROY_WORDS) ?? [];
+    print(historyWords);
+    var addLine = "${word},${cityName},${countryName}";
+    historyWords.forEach(( historyWordLine) {
+      if(historyWordLine == addLine){
+        historyWords.remove(historyWordLine);
+      }
+    });
+    if(historyWords.length >= 200){
+      historyWords.removeLast();
+    }
+    historyWords.add(addLine);
+    prefs.setStringList(LS_FIELD.HISTROY_WORDS, historyWords);
   }
 
-  OverlayLoader.loader.showLoader(searchUrl);
+  openBrowser(String message, String countryCode) async {
+    print("openBrowser");
+    var searchUrl = Uri.encodeFull("https://www.google.com/search?q=${message}&tbm=nws&source=lnt&tbs=sbd:1");
+    if(countryCode == "KR"){
+      searchUrl = Uri.encodeFull("https://search.naver.com/search.naver?sm=top_hty&fbm=1&ie=utf8&query=${message}");
+    }
+    logAddFolder(message);
+    OverlayLoader.loader.showLoader(searchUrl);
+  }
+
+  Future logAddFolder(String word) async {
+    await FirebaseAnalytics().logEvent(name: 'open_browser', parameters: {'word': word, 'view':'word cloud'});
+  }
 }
+
 
 
 

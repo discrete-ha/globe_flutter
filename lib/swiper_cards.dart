@@ -1,13 +1,15 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swipper/flutter_card_swiper.dart';
-import 'package:globe_flutter/issue_list.dart';
+import 'package:globe_flutter/word_cloud_list.dart';
 import 'package:flutter/cupertino.dart';
 
-typedef void OnTitlePageChanged(String title);
+typedef void OnTitlePageChanged(String title, String subTitle);
 
-class LocationCards extends StatelessWidget{
+class SwiperCards extends StatelessWidget{
   List<Map<String,dynamic>> issues;
   final String LAST_UPDATE_TIME = "LAST_UPDATE_TIME";
   final String LOCAL_WOEID = "LOCAL_WOEID";
@@ -15,12 +17,16 @@ class LocationCards extends StatelessWidget{
   String cityName = "";
   final OnTitlePageChanged onTitlePageChanged;
 
-  LocationCards(this.issues, this.onTitlePageChanged);
+  SwiperCards(this.issues, this.onTitlePageChanged);
 
-  String _getTitle(int index){
+  String _getCity(int index){
     var city = this.issues[index]['location'];
-    var country = this.issues[index]['country'];
-    return city == "Worldwide" ? city : city  + ", " +country;
+    return city;
+  }
+
+  String _getCountry(int index){
+    var country = this.issues[index]['country'] == "Worldwide" ? null : this.issues[index]['country'];
+    return country;
   }
 
   @override
@@ -52,14 +58,17 @@ class LocationCards extends StatelessWidget{
       itemWidth: cardWidth,
       itemHeight: cardHeight,
       onIndexChanged: (int index) {
-        this.onTitlePageChanged(_getTitle(index));
+        var city = _getCity(index);
+        var country = _getCountry(index);
+        this.onTitlePageChanged(city, country);
+        logChangeCity(city+","+country);
       },
       itemBuilder: ( context, index ) {
         return Padding(
             padding: EdgeInsets.fromLTRB(5.0,5.0,5.0,15.0),
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(40.0),
-                child: IssueList(
+                child: WordCloudList(
                     issue: this.issues[index],
                     ratio: wordCloudRatio
                 )
@@ -68,25 +77,20 @@ class LocationCards extends StatelessWidget{
       },
       pagination: new SwiperPagination(
         builder: new DotSwiperPaginationBuilder(
-            color: Colors.grey[300],
-            activeColor: Color.fromRGBO(80, 180, 255, 100)
+            color: Colors.grey[200],
+            activeColor: Colors.blue.shade200
         ),
         margin: const EdgeInsets.only(bottom:0.0),
       ),
       control: new SwiperControl(
         color:Colors.grey[300],
-        padding:EdgeInsets.all(0),
+        padding:EdgeInsets.only(left: 6, right:0),
       ),
       itemCount: this.issues.length
-
-    // itemBuilder: (BuildContext context,int index){
-    //   return new Image.network("http://via.placeholder.com/350x150",fit: BoxFit.fill,);
-    // },
-    // itemCount: 3,
-    // pagination: new SwiperPagination(),
-    // control: new SwiperControl(),
     );
   }
 }
 
-
+Future logChangeCity(String city) async {
+  await FirebaseAnalytics().logEvent(name: 'change_city', parameters: {'city': city});
+}
