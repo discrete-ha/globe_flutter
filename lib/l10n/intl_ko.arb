@@ -14,5 +14,6 @@
   "enter_title": "제목을 입력해 주십시오.",
   "enter_message": "내용을 입력해 주십시오.",
   "deleted": "을(를) 삭제하였습니다.",
-  "to_delete": "삭제합니다."
+  "to_delete": "삭제합니다.",
+  "download_android": "앱 다운로드"
 }

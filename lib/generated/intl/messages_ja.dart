@@ -24,6 +24,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "appTitle": MessageLookupByLibrary.simpleMessage("グローブ [GLOBE]"),
         "contact": MessageLookupByLibrary.simpleMessage("お問い合わせ"),
         "deleted": MessageLookupByLibrary.simpleMessage("を削除しました。"),
+        "download_android": MessageLookupByLibrary.simpleMessage("アプリダウンロード"),
         "enter_email":
             MessageLookupByLibrary.simpleMessage("あなたのメールアドレスを入力してください。"),
         "enter_message":

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:globe_flutter/add_city_drawer.dart';
@@ -7,6 +8,7 @@ import 'package:globe_flutter/app_drawer.dart';
 import 'package:globe_flutter/banner_ad_widget.dart';
 import 'package:globe_flutter/custom_dialog.dart';
 import 'package:globe_flutter/generated/l10n.dart';
+import 'package:globe_flutter/global_navigator.dart';
 import 'package:globe_flutter/loading_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
@@ -14,8 +16,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:globe_flutter/const.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:timezone/timezone.dart' as tz;
 
 import 'app_bar.dart';
 import 'swiper_cards.dart';
@@ -49,6 +49,11 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     super.initState();
     print("initState()");
     (() async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setStringList(LS_FIELD.NOTIFICATION_TEXT, [
+        S.of(context).appTitle,
+        S.of(context).localNotificationBody
+      ]);
       jsonStringConfig = await _loadConfig();
       loadData();
     })();
@@ -161,7 +166,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     print("_MainViewState build()");
-    var body = !this._isFetching && this.issues.length > 0
+    var contentBody = !this._isFetching && this.issues.length > 0
         ? swiperCards
         : LoadingIndicator();
 
@@ -178,7 +183,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
                 child: Stack(
                   children: <Widget>[
                     new Padding(
-                        padding: EdgeInsets.only(bottom: 100), child: body),
+                        padding: EdgeInsets.only(bottom: 100), child: contentBody),
                     new Positioned(
                       child: new Align(
                           alignment: FractionalOffset.bottomCenter,
@@ -187,7 +192,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
                     new Positioned(
                       child: new Align(
                           alignment: FractionalOffset.bottomCenter,
-                          child: kIsWeb ? Container() : BannerAdWidget()),
+                          child: kIsWeb ? Container() : BannerAdWidget(BannerType.Main)),
                     )
                   ],
                 )),
@@ -222,10 +227,9 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
         this.appbarTitle = title;
         this.appbarSubTitle = subTitle;
       }
-      //
-      // this.cityName = "Your location";
-      // this.countryName = title + "," + subTitle;
     });
+
+    addFBLog();
   }
 
   Future<LocationData?> _getLocation() async {
@@ -242,8 +246,6 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     try {
       final parsed = json.decode(responseBody);
       if (isMain) {
-        // this.cityName = parsed["location"] ;
-        // this.countryName = parsed["country"];
         this.appbarTitle = "Your location";
         if(parsed["country"] == null ){
           this.appbarSubTitle = parsed["location"];
@@ -306,8 +308,10 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
         LocationData? userLocation = (await _getLocation());
         print("userLocation:" + userLocation.toString());
         if (userLocation == null) {
-          woeid = "1" as Future<String>;
+          print(1);
+          woeid = "1";
           response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
+          print(response);
         } else {
           //current location
           var lat = userLocation.latitude.toString();
@@ -318,6 +322,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
           var parsedResponse = json.decode(response.body);
           _setLocalWoeid(parsedResponse["woeid"]);
         }
+
       } else {
         response = await client.get(Uri.parse('${SETTING.SERVER_URL}/topics/$API_APPID/$woeid'));
       }
@@ -346,4 +351,7 @@ class _GlobeViewState extends State<GlobeView> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> addFBLog() async {
+    await FirebaseAnalytics().logEvent(name: 'change_card');
+  }
 }

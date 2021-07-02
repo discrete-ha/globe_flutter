@@ -6,10 +6,15 @@ abstract class SETTING {
   // static final String SERVER_URL = "http://localhost:3000";
   static final String admobUnitIdTest = 'ca-app-pub-3940256099942544/6300978111';
   static final String admobAppId = 'ca-app-pub-9623769649834685~7994032794';
-  static final String admobUnitId = 'ca-app-pub-9623769649834685/2550134426';
-// static final String admobAppId = Platform.isAndroid ? 'ca-app-pub-9623769649834685~7994032794' : 'ca-app-pub-9623769649834685~3207957973';
-  // static final String admobUnitId = Platform.isAndroid ? 'ca-app-pub-9623769649834685/2550134426' : 'ca-app-pub-9623769649834685/6380916226';
-  //
+  static final String admobMainBannerUnitId = 'ca-app-pub-9623769649834685/2550134426';
+  static final String admobMenuBannerUnitId = 'ca-app-pub-9623769649834685/3177277503';
+  static final String admobAddCityBannerUnitId = 'ca-app-pub-9623769649834685/5441312915';
+
+}
+class BannerType{
+  static const String Main = "main";
+  static const String Menu = "menu";
+  static const String AddCity = "add_city";
 }
 
 class VIEW{
@@ -17,6 +22,7 @@ class VIEW{
   static const int ADD_CITY = 2;
   static const int SEND_MAIL = 3;
   static const int HISTORY = 4;
+  static const int INIT_VIEW = 5;
 }
 
 class LS_FIELD{

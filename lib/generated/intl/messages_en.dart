@@ -24,6 +24,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "appTitle": MessageLookupByLibrary.simpleMessage("GLOBE"),
         "contact": MessageLookupByLibrary.simpleMessage("Contact us"),
         "deleted": MessageLookupByLibrary.simpleMessage("deleted"),
+        "download_android":
+            MessageLookupByLibrary.simpleMessage("Download App"),
         "enter_email":
             MessageLookupByLibrary.simpleMessage("Enter your e-mail address"),
         "enter_message":

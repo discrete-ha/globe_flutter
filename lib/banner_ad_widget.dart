@@ -6,9 +6,13 @@ import 'package:globe_flutter/const.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class BannerAdWidget extends StatefulWidget {
-  BannerAdWidget();
+  String type;
 
-  final AdSize size = AdSize.largeBanner;
+  BannerAdWidget(this.type);
+
+  final AdSize mainSize = AdSize.largeBanner;
+  final AdSize menuSize = AdSize.mediumRectangle;
+  final AdSize addCitySize = AdSize.mediumRectangle;
 
   @override
   State<StatefulWidget> createState() => BannerAdState();
@@ -24,10 +28,28 @@ class BannerAdState extends State<BannerAdWidget> {
     MobileAds.instance.initialize().then((InitializationStatus status) {
       print('Initialization done: ${status.adapterStatuses}');
     });
+    var adUnitId = "";
+    var adSize;
+    switch(widget.type){
+      case BannerType.Main:
+        adUnitId = SETTING.admobMainBannerUnitId;
+        adSize = widget.mainSize;
+        break;
+      case BannerType.Menu:
+        adUnitId = SETTING.admobMenuBannerUnitId;
+        adSize = widget.menuSize;
+        break;
+      case BannerType.AddCity:
+        adUnitId = SETTING.admobAddCityBannerUnitId;
+        adSize = widget.addCitySize;
+        break;
+    }
+    // adUnitId = "ca-app-pub-3940256099942544/6300978111";
+
     _bannerAd = BannerAd(
-      adUnitId: SETTING.admobUnitId,
+      adUnitId: adUnitId,
       request: AdRequest(),
-      size: widget.size,
+      size: adSize,
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
           print('$BannerAd loaded.');

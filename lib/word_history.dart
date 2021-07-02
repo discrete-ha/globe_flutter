@@ -7,6 +7,8 @@ import 'package:globe_flutter/generated/l10n.dart';
 import 'package:globe_flutter/overlay_loader.dart';
 import 'package:globe_flutter/overlay_webview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
 
 class WordHistory extends StatefulWidget {
   WordHistory({Key? key}) : super(key: key);
@@ -28,13 +30,13 @@ class WordHistoryState extends State<WordHistory> {
       prefs = await SharedPreferences.getInstance();
       setState(() {
         historyWords = prefs.getStringList(LS_FIELD.HISTROY_WORDS) ?? [];
-        print(historyWords);
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
         appBar: GlobeAppBar(
             context, S.of(context).history, null, VIEW.HISTORY, () {}),
@@ -44,23 +46,22 @@ class WordHistoryState extends State<WordHistory> {
                 color: Colors.white,
                 child: new SafeArea(
                   child: ListView.builder(
-                    reverse: true,
-                    shrinkWrap: true,
                     itemCount: historyWords.length,
                     itemBuilder: (context, index) {
-                      final item = historyWords[index];
+                      final item = historyWords[historyWords.length - index -1];
                       final itemSplit = item.split(",");
 
                       return Dismissible(
                         key: Key(item),
                         onDismissed: (direction) {
-                          Future.delayed(Duration.zero, () async {
-                            removeWord(item);
-                          });
-                          setState(() {
-                            historyWords.removeAt(index);
-                          });
 
+                          setState(() {
+                            Future.delayed(Duration.zero, () async {
+                              removeWord(item);
+                            });
+                            historyWords.removeAt(historyWords.length - index -1);
+                          });
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text('${itemSplit[0]} ' + S.of(context).deleted)));
                         },
@@ -104,13 +105,13 @@ class WordHistoryState extends State<WordHistory> {
       searchUrl = Uri.encodeFull(
           "https://search.naver.com/search.naver?sm=top_hty&fbm=1&ie=utf8&query=${message}");
     }
-    logAddFolder(message);
-    OverlayLoader.loader.showLoader(searchUrl);
-  }
 
-  Future logAddFolder(String word) async {
-    await FirebaseAnalytics().logEvent(
-        name: 'open_browser', parameters: {'word': word, 'view': 'history'});
+    if(kIsWeb){
+      await canLaunch(searchUrl) ? await launch(searchUrl) : throw 'Could not launch $searchUrl';
+    }else{
+      OverlayLoader.loader.showLoader(searchUrl);
+    }
+    addFBLog(message, "open browser");
   }
 
   void removeWord(String word) {
@@ -120,5 +121,10 @@ class WordHistoryState extends State<WordHistory> {
       }
     });
     prefs.setStringList(LS_FIELD.HISTROY_WORDS, historyWords);
+    addFBLog(word, "delete");
+  }
+
+  Future<void> addFBLog(String word, String? value) async {
+    await FirebaseAnalytics().logEvent(name: 'history', parameters: {'word': word, 'action':value});
   }
 }

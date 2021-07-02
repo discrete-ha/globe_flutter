@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:globe_flutter/global_navigator.dart';
-import 'add_city_list.dart';
 import 'const.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
 void addIfNonNull(Widget? child, List children) {
@@ -38,7 +36,7 @@ AppBar GlobeAppBar(BuildContext context ,String title, String? subtitle, int VIE
         )
       ];
 
-      leading = new IconButton(
+      leading = kIsWeb ? Container(): new IconButton(
           icon: new Icon(Icons.refresh, color: Colors.grey.shade600),
           onPressed: () {
             if(leadFunction != null){
@@ -62,19 +60,8 @@ AppBar GlobeAppBar(BuildContext context ,String title, String? subtitle, int VIE
             }
           });
       break;
-    case VIEW.ADD_CITY:
+    case VIEW.INIT_VIEW:
       defaultIcon = false;
-      leading = new IconButton(
-          icon: new Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () {
-            SystemChannels.textInput.invokeMethod('TextInput.hide');
-            Navigator.of(context).pop();
-            if(leadFunction != null){
-              (() async {
-                leadFunction();
-              })();
-            }
-          });
       break;
   }
   actions = [leading, ...actions];
@@ -120,67 +107,3 @@ AppBar GlobeAppBar(BuildContext context ,String title, String? subtitle, int VIE
   );
 }
 
-
-//
-// class SlideRightRoute extends PageRouteBuilder {
-//   final Widget page;
-//   SlideRightRoute({required this.page})
-//       : super(
-//     pageBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         ) =>
-//     page,
-//     transitionsBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         Widget child,) =>
-//         SlideTransition(
-//           position: Tween<Offset>(
-//             begin: const Offset(0, 0),
-//             end: Offset.zero,
-//           ).animate(animation),
-//           child: child,
-//         ),
-//   );
-// }
-// //
-// class EnterExitRoute extends PageRouteBuilder {
-//   final Widget enterPage;
-//   final Widget exitPage;
-//   EnterExitRoute({required this.exitPage, required this.enterPage})
-//       : super(
-//     pageBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         ) =>
-//     enterPage,
-//     transitionsBuilder: (
-//         BuildContext context,
-//         Animation<double> animation,
-//         Animation<double> secondaryAnimation,
-//         Widget child,
-//         ) =>
-//         Stack(
-//           children: <Widget>[
-//             SlideTransition(
-//               position: new Tween<Offset>(
-//                 begin: const Offset(0.0, 0.0),
-//                 end: const Offset(-1.0, 0.0),
-//               ).animate(animation),
-//               child: exitPage,
-//             ),
-//             SlideTransition(
-//               position: new Tween<Offset>(
-//                 begin: const Offset(1.0, 0.0),
-//                 end: Offset.zero,
-//               ).animate(animation),
-//               child: enterPage,
-//             )
-//           ],
-//         ),
-//   );
-// }

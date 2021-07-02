@@ -1,5 +1,5 @@
 // @dart=2.9
-import 'dart:isolate';
+// import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
@@ -9,6 +9,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:globe_flutter/Tutorial.dart';
+import 'package:globe_flutter/add_city_list.dart';
 import 'package:globe_flutter/available_cities.dart';
 import 'package:globe_flutter/const.dart';
 import 'package:globe_flutter/globa_data.dart';
@@ -23,7 +25,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'overlay_webview.dart';
 import 'generated/l10n.dart';
@@ -50,8 +51,11 @@ const NotificationDetails platformChannelSpecifics = NotificationDetails(android
 String packageVersion;
 String packageNuildNumber;
 
-final ReceivePort port = ReceivePort();
+// final ReceivePort port = ReceivePort();
 const String isolateName = 'globe_isolate';
+GlobeNotificationController globeNotificationController;
+
+bool initRun = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,33 +64,31 @@ void main() async {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   await AvailableCities.instance.loadFile();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  PackageInfo packageInfo = await PackageInfo.fromPlatform();
-  GlobalData.VERSION = packageInfo.version;
-  GlobalData.BUILD_NUMBER = packageInfo.buildNumber;
+  if (kIsWeb) {
 
-  runApp(App());
-  await AndroidAlarmManager.initialize();
-  // globeNotificationController.registerScheduledNotification();
-  GlobeNotificationController globeNotificationController = GlobeNotificationController();
+  } else {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    GlobalData.VERSION = packageInfo.version;
+    GlobalData.BUILD_NUMBER = packageInfo.buildNumber;
+  }
   SharedPreferences prefs = await SharedPreferences.getInstance();
   var initialized = prefs.getBool(LS_FIELD.INITIALIZED);
-  if(initialized == null || initialized == false){
+  if( initialized == null || initialized == false){
     print("initial running...");
-    globeNotificationController.setDefaultNotification();
-    prefs.setBool(LS_FIELD.INITIALIZED, true);
+    initRun = true;
   }
 
-  prefs.setStringList(LS_FIELD.NOTIFICATION_TEXT, [
-    S.of(GlobalNavigator.Key.currentContext).appTitle,
-    S.of(GlobalNavigator.Key.currentContext).localNotificationBody
-  ]);
+  runApp(App());
+  if (kIsWeb) {
 
-  IsolateNameServer.registerPortWithName(
-    port.sendPort,
-    isolateName,
-  );
+  } else {
+    await AndroidAlarmManager.initialize();
+    globeNotificationController = GlobeNotificationController();
+    globeNotificationController.getRegisteredNotifications();
+  }
 
-  globeNotificationController.getRegisteredNotifications();
+  if(globeNotificationController != null)
+    globeNotificationController.setDefaultNotification();
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -104,6 +106,7 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+
     if (kIsWeb) {
     } else {
       bool isAndroid = Theme.of(context).platform == TargetPlatform.android;
@@ -113,6 +116,68 @@ class _AppState extends State<App> {
       _configureDidReceiveLocalNotificationSubject();
       _configureSelectNotificationSubject();
     }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    print("main:build()");
+    // AppLocalizationDelegate().
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    SystemChrome.setSystemUIOverlayStyle( SystemUiOverlayStyle(statusBarBrightness: Brightness.dark));
+    FirebaseAnalytics analytics = FirebaseAnalytics();
+    return MaterialApp(
+        navigatorKey: GlobalNavigator.Key,
+        debugShowCheckedModeBanner: false,
+        title: 'Globe',
+        navigatorObservers: [
+          FirebaseAnalyticsObserver(analytics: analytics),
+        ],
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        localizationsDelegates: [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: Stack(
+          children: [
+            Container(
+                color: Colors.white,
+                child: new SafeArea(child: GlobeView())),
+            SafeArea(child: OverlayView()),
+            // SafeArea(child: Tutorial()),
+          ],
+        ),
+        localeResolutionCallback: (deviceLocale, supportedLocales) {
+          print("localeResolutionCallback");
+          print("localeResolutionCallback countryCode:" +
+              deviceLocale.countryCode);
+          print("localeResolutionCallback languageCode:" +
+              deviceLocale.languageCode);
+          if (deviceLocale != null) {
+            for (Locale supportedLocale in supportedLocales) {
+              if (supportedLocale.languageCode == deviceLocale.languageCode ||
+                  supportedLocale.countryCode == deviceLocale.countryCode) {
+                fcmSubscribe(deviceLocale.languageCode);
+                return supportedLocale;
+              }
+            }
+          }
+          return supportedLocales.first;
+        },
+        supportedLocales: [
+          Locale('en'),
+          Locale('ko'),
+          Locale('ja'),
+        ]);
   }
 
   void _configureDidReceiveLocalNotificationSubject() {
@@ -263,65 +328,6 @@ class _AppState extends State<App> {
     await FirebaseMessaging.instance.subscribeToTopic('language_' + lang);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    print("main:build()");
-    // AppLocalizationDelegate().
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-
-    SystemChrome.setSystemUIOverlayStyle( SystemUiOverlayStyle(statusBarBrightness: Brightness.dark));
-    FirebaseAnalytics analytics = FirebaseAnalytics();
-    return MaterialApp(
-        navigatorKey: GlobalNavigator.Key,
-        debugShowCheckedModeBanner: false,
-        title: 'Globe',
-        navigatorObservers: [
-          FirebaseAnalyticsObserver(analytics: analytics),
-        ],
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        localizationsDelegates: [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        home: Stack(
-          children: [
-            Container(
-                color: Colors.white,
-                child: new SafeArea(child: GlobeView())),
-            SafeArea(child: OverlayView()),
-          ],
-        ),
-        localeResolutionCallback: (deviceLocale, supportedLocales) {
-          print("localeResolutionCallback");
-          print("localeResolutionCallback countryCode:" +
-              deviceLocale.countryCode);
-          print("localeResolutionCallback languageCode:" +
-              deviceLocale.languageCode);
-          if (deviceLocale != null) {
-            for (Locale supportedLocale in supportedLocales) {
-              if (supportedLocale.languageCode == deviceLocale.languageCode ||
-                  supportedLocale.countryCode == deviceLocale.countryCode) {
-                fcmSubscribe(deviceLocale.languageCode);
-                return supportedLocale;
-              }
-            }
-          }
-          return supportedLocales.first;
-        },
-        supportedLocales: [
-          Locale('en'),
-          Locale('ko'),
-          Locale('ja'),
-        ]);
-  }
 
   // Future<void> registerScheduledNotification() async {
   //   await showPeriodicNotification();
