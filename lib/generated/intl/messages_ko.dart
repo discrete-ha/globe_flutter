@@ -24,6 +24,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "appTitle": MessageLookupByLibrary.simpleMessage("GLOBE"),
         "contact": MessageLookupByLibrary.simpleMessage("문의하기"),
         "deleted": MessageLookupByLibrary.simpleMessage("을(를) 삭제하였습니다."),
+        "download_android": MessageLookupByLibrary.simpleMessage("앱 다운로드"),
         "enter_email":
             MessageLookupByLibrary.simpleMessage("보내시는 E-mail을 입력해주십시오."),
         "enter_message": MessageLookupByLibrary.simpleMessage("내용을 입력해 주십시오."),

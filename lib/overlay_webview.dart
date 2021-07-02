@@ -1,10 +1,10 @@
 // import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:globe_flutter/overlay_loader.dart';
 import 'package:globe_flutter/webview_listnerabl_values.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:share/share.dart';
 
 class OverlayView extends StatelessWidget {
   const OverlayView({
@@ -44,33 +44,65 @@ class OverlayView extends StatelessWidget {
                       const Radius.circular(15.0),
                     ),
                     child: WebView(
-                      initialUrl: value.url,
-                      javascriptMode: JavascriptMode.unrestricted,
-                      onWebViewCreated: (WebViewController webViewController) {
-                        _controller = webViewController;
-                        webViewController.canGoBack();
-                      },
-                    ),
+                            initialUrl: value.url,
+                            javascriptMode: JavascriptMode.unrestricted,
+                            onWebViewCreated:
+                                (WebViewController webViewController) {
+                              _controller = webViewController;
+                              webViewController.canGoBack();
+                            },
+                          ),
                   ),
                 )),
-                Container(
-                  alignment: Alignment.bottomCenter,
-                  padding: EdgeInsets.only(bottom: 25),
-                  child: ClipOval(
-                    child: Material(
-                        child: IconButton(
-                      color: Colors.grey[700],
-                      icon: new Icon(Icons.arrow_back, size: 25.0),
-                      onPressed: () async {
-                        if (await _controller.canGoBack() ) {
-                          _controller.goBack();
-                        } else {
-                          OverlayLoader.loader.hideLoader();
-                        }
-                      },
-                    )),
+                Row(
+                  children: [
+                    Expanded(
+                        child:Container()
+                    ),
+                  Expanded(
+                  child:Container()
                   ),
-                )
+                  Expanded(
+                  child:
+                  Container(
+                      alignment: Alignment.bottomCenter,
+                      padding: EdgeInsets.only(bottom: 25),
+                      child: ClipOval(
+                        child: Material(
+                            child: IconButton(
+                              color: Colors.grey[700],
+                              icon: new Icon(Icons.arrow_back, size: 25.0),
+                              onPressed: () async {
+                                if (await _controller.canGoBack()) {
+                                  _controller.goBack();
+                                } else {
+                                  OverlayLoader.loader.hideLoader();
+                                }
+                              },
+                            )),
+                      ),
+                    )),
+          Expanded(
+          child:Container(
+                      alignment: Alignment.bottomCenter,
+                      padding: EdgeInsets.only(bottom: 25 ),
+                      child: ClipOval(
+                        child: Material(
+                            child: IconButton(
+                              color: Colors.grey[700],
+                              icon: new Icon(Icons.share, size: 25.0),
+                              onPressed: () async {
+                                Share.share( "Shared using GLOBE by Air-flare "  + await _controller.currentUrl() );
+                              },
+                            )),
+                      ),
+                    )),
+                    Expanded(
+                        child:Container()
+                    )
+                  ],
+                ),
+
               ],
             );
           } else {

@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
@@ -84,5 +85,10 @@ class MailSender extends StatelessWidget {
     );
 
     await FlutterEmailSender.send(email);
+    addFBLog();
+  }
+
+  Future<void> addFBLog() async {
+    await FirebaseAnalytics().logEvent(name: 'contact_us', parameters: {'action':'send_mail'});
   }
 }

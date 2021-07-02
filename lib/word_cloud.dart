@@ -4,9 +4,11 @@ import 'package:flutter_scatter/flutter_scatter.dart';
 import 'package:globe_flutter/const.dart';
 import 'package:globe_flutter/overlay_loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert' show utf8;
 import 'issue.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class WordColud extends StatelessWidget {
   final List<Issue> words;
@@ -107,7 +109,11 @@ class CloudItem extends StatelessWidget {
       searchUrl = Uri.encodeFull("https://search.naver.com/search.naver?sm=top_hty&fbm=1&ie=utf8&query=${message}");
     }
     logAddFolder(message);
-    OverlayLoader.loader.showLoader(searchUrl);
+    if(kIsWeb){
+      await canLaunch(searchUrl) ? await launch(searchUrl) : throw 'Could not launch $searchUrl';
+    }else{
+      OverlayLoader.loader.showLoader(searchUrl);
+    }
   }
 
   Future logAddFolder(String word) async {

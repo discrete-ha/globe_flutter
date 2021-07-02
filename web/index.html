@@ -20,14 +20,41 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="globe_flutter">
+  <meta name="apple-mobile-web-app-title" content="GLOBE">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="airflare.ico"/>
 
   <title>globe_flutter</title>
   <link rel="manifest" href="manifest.json">
+  <script data-ad-client="ca-pub-9623769649834685" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <style>
+#airflare-logo {
+  width: 100px;
+  background-size: contain;
+  height: 100px;
+  background-image: url(assets/assets/logo.png);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  animation-name: roll;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes roll {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+</style>
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to
@@ -67,5 +94,7 @@
   firebase.analytics();
 </script>
   <script src="main.dart.js" type="application/javascript"></script>
+  <div id="airflare-logo"></div>
+
 </body>
 </html>

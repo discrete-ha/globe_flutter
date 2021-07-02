@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle, rootBundle;
 import 'package:globe_flutter/app_drawer.dart';
 import 'package:globe_flutter/available_cities.dart';
+import 'package:globe_flutter/banner_ad_widget.dart';
 import 'package:globe_flutter/const.dart';
+import 'package:globe_flutter/main.dart';
 
 import 'app_bar.dart';
 import 'city.dart';
@@ -212,7 +214,7 @@ class _AddCityListState extends State<AddCityList> {
       child: new SafeArea(
         child: Scaffold(
             // drawer: AppDrawer(),
-            appBar: GlobeAppBar(context, title, null, VIEW.ADD_CITY, (){}),
+            appBar: GlobeAppBar(context, title, null, initRun ? VIEW.INIT_VIEW : VIEW.ADD_CITY, (){}),
             body: Container(
               child: Column(
                 children: <Widget>[
@@ -244,6 +246,7 @@ class _AddCityListState extends State<AddCityList> {
                       },
                     ),
                   ),
+                  BannerAdWidget(BannerType.AddCity)
                 ],
               ),
             )

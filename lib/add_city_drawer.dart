@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:globe_flutter/add_city_list.dart';
@@ -25,6 +26,7 @@ class AddCityDrawerState extends State<AddCityDrawer> {
     callbackFuntion = widget.callback;
     Future.delayed(Duration.zero, () async {
       previousWoeids = await _getSavedLoaction();
+      adFBLog();
     });
   }
 
@@ -61,7 +63,11 @@ class AddCityDrawerState extends State<AddCityDrawer> {
   Widget build(BuildContext context) {
     return Drawer(
       child: AddCityList(),
-    )
-      ;
+    );
+  }
+
+
+  Future adFBLog() async {
+    await FirebaseAnalytics().logEvent(name: 'open_add_city');
   }
 }
